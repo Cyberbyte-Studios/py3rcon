@@ -11,7 +11,7 @@ _VER = '0.2.1'
 
 parser = argparse.ArgumentParser(description=_DESC)
 parser.add_argument('configfile', help='configuration file in JSON')
-parser.add_argument('-g','--gui', action='store_true',help='open the GUI - no other events are enabled')
+parser.add_argument('-g', '--gui', action='store_true', help='open the GUI - no other events are enabled')
 args = parser.parse_args()
 
 GUI = args.gui
@@ -57,6 +57,9 @@ try:
 
     if 'whitelist' in config:
         rcon.loadmodule('rconwhitelist', 'RconWhitelist', config['whitelist'], GUI)
+
+    if 'url' in config:
+        rcon.loadmodule('rconapiwhitelist', 'RconApiWhitelist', config)
         
     if GUI:
         rcon.loadmodule('rcongui', 'RconGUI', config)

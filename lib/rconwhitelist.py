@@ -13,7 +13,6 @@ class RconWhitelist(object):
         self.changed = False
         self.modified = None
         self.GUI = GUI
-        self.config = []
 
         if not(os.path.isfile(self.configFile)):
             open(self.configFile, 'a').close()
@@ -23,30 +22,30 @@ class RconWhitelist(object):
 
         if self.GUI: return
 
-        # thread to save whitelist.json every X 
+        # thread to save whitelist.json every X
         self.saveConfigAsync()
 
         # thread to watch for file changes
         t = threading.Thread(target=self.watchConfig)
         t.daemon = True
         t.start()
-         
+
     """
     public: (Re)Load the commands configuration file
     """
     def loadConfig(self):
         with open(self.configFile) as json_config:
             try:
-                self.config = json.load(json_config)
+                config = json.load(json_config)
             except ValueError:
-                self.config = []
+                config = []
 
         self.whitelist = []
-        for x in self.config:
-            self.whitelist.append(Player.fromJSON(x))
-        
+        for x in config:
+            self.whitelist.append( Player.fromJSON(x) )
+
         self.modified = os.path.getmtime(self.configFile)
-    
+
     def watchConfig(self):
         if not(os.path.isfile(self.configFile)): return
         time.sleep(10)
@@ -67,7 +66,7 @@ class RconWhitelist(object):
         if self.changed or self.GUI:
             with open(self.configFile, 'w') as outfile:
                 json.dump([ob.__dict__ for ob in self.whitelist], outfile, indent=4, sort_keys=True)
-        
+
         if self.GUI: return
 
         self.changed = False
@@ -78,21 +77,12 @@ class RconWhitelist(object):
         self.rcon.sendCommand('players')
 
     def checkPlayer(self, player):
-        try:
-            if player.allowed or self.api_check(player):
-                logging.info('[WHITELIST] Player %s with ID %s IS WHITELISTED' % (player.name, player.guid))
-                return
-        except e:
-            logging.error('')
+        if player.allowed:
+            logging.info('[WHITELIST] Player %s with ID %s IS WHITELISTED' % (player.name, player.guid))
+            return
 
         logging.info('[WHITELIST] Player %s IS NOT WHITELISTED - Kick in progress' % (player.name))
         self.rcon.sendCommand('kick {}'.format(player.number))
-    
-    def api_check(self, player):
-        response = requests.get(self.config['url'].format(guid=player.guid)).json()
-        if response.get('result', 'false') == 'true': # not sure if i want this to fail
-            return True
-        return False
 
     def OnPlayers(self, playerList):
         for x in playerList:
@@ -111,4 +101,3 @@ class RconWhitelist(object):
             found.append( player )
 
         self.checkPlayer(found[0])
-    
