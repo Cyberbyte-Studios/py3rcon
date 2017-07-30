@@ -6,6 +6,8 @@
 		"port": 2402,
 		"rcon_password": "yourRconPassword"
 	},
+	"url": "http://localhost/",
+	"kick_message": "You are not whitelisted to use this slot",
 	"commands": "commands.json",
 	"whitelist": "whitelist.json",
 	"restart": {
